@@ -171,13 +171,12 @@ const backport = async ({
       merged,
       number: pullRequestNumber,
       title: originalTitle,
+      user: { login: user },
     },
     repository: {
       name: repo,
       owner: { login: owner },
     },
-    // @ts-ignore
-    user: { login: user },
   },
   token,
 }: {
