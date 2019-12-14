@@ -96,27 +96,32 @@ const backportOnce = async ({
     await exec("git", args, { cwd: repo });
   };
 
-  await git("switch", base);
-  await git("switch", "--create", head);
   try {
-    await git("cherry-pick", "-n", commitToBackport);
-    await git("add", ".");
-    await git("git commit", "-m", originalTitle);
+    await git("fetch", "upstream");
+    await git("checkout", "upstream", base);
+    await git("checkout", "-b", head);
+    try {
+      await git("cherry-pick", "-n", commitToBackport);
+      await git("add", ".");
+      await git("git commit", "-m", originalTitle);
+    } catch (error) {
+      await git("cherry-pick", "--abort");
+      throw error;
+    }
+
+    await git("push", "--set-upstream", "upstream", head);
+    await github.pulls.create({
+      base: `${owner}:${base}`,
+      body,
+      head: `${user}:${head}`,
+      maintainer_can_modify: true,
+      owner,
+      repo,
+      title,
+    });
   } catch (error) {
-    await git("cherry-pick", "--abort");
     throw error;
   }
-
-  await git("push", "--set-upstream", "origin", head);
-  await github.pulls.create({
-    base,
-    body,
-    head: `${user}:${head}`,
-    maintainer_can_modify: true,
-    owner,
-    repo,
-    title,
-  });
 };
 
 const getFailedBackportCommentBody = ({
