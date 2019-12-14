@@ -11,8 +11,8 @@ jobs:
     name: Backport
     steps:
       - name: Backport Bot
-        uses: Gaurav0/backport@v1.0.19
+        uses: Gaurav0/backport@v1.0.20
         with:
           bot_username: backport-bot
-          bot_token: 04159db210d288746dd43f9e1b3eaca73d30c28c 
+          bot_token: 0678c13f8eabb3dddd9f9f726fed1810993d48b3 
           github_token: ${{ secrets.GITHUB_TOKEN }}

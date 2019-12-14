@@ -241,7 +241,7 @@ const backport = async ({
     "remote",
     "add",
     "botrepo",
-    `https://${botUsername}:${botToken}@github.com/${botUsername}/${repo}.git`,
+    `https://x-access-token:${botToken}@github.com/${botUsername}/${repo}.git`,
   );
 
   await exec("git", [
