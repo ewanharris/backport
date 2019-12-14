@@ -2,6 +2,9 @@ name: Backport Bot
 author: Thibault Derousseaux <tibdex@gmail.com>
 description: Automatically backport PRs to other branches by simply labeling them.
 inputs:
+  bot_username:
+    description: Username associated with access token
+    required: true
   github_token:
     description: Token for the GitHub API.
     required: true
