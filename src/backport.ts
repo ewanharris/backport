@@ -101,12 +101,16 @@ const backportOnce = async ({
     await git("checkout", `upstream/${base}`);
     await git("checkout", "-b", head);
     try {
-      await git("cherry-pick", "-n", commitToBackport);
+      try {
+        await git("cherry-pick", "-n", commitToBackport);
+      } catch(error3) {
+        console.warn(error3); // continue but warn
+      }
       await git("add", ".");
       await git("git commit", "-m", originalTitle);
-    } catch (error) {
+    } catch (error2) {
       await git("cherry-pick", "--abort");
-      throw error;
+      throw error2;
     }
 
     await git("push", "--set-upstream", "upstream", head);
