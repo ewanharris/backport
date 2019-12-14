@@ -103,7 +103,7 @@ const backportOnce = async ({
     try {
       try {
         await git("cherry-pick", "-n", commitToBackport);
-      } catch(error3) {
+      } catch (error3) {
         console.warn(error3); // continue but warn
       }
       await git("add", ".");
@@ -113,11 +113,11 @@ const backportOnce = async ({
       throw error2;
     }
 
-    await git("push", "--set-upstream", "upstream", head);
+    await git("push", "origin", `backport-${head}-to-${base}`);
     await github.pulls.create({
       base: `${owner}:${base}`,
       body,
-      head: `${user}:${head}`,
+      head: `${user}:backport-${head}-to-${base}`,
       maintainer_can_modify: true,
       owner,
       repo,

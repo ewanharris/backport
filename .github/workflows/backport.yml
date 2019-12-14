@@ -11,6 +11,6 @@ jobs:
     name: Backport
     steps:
       - name: Backport Bot
-        uses: Gaurav0/backport@v1.0.13
+        uses: Gaurav0/backport@v1.0.14
         with:
           github_token: ${{ secrets.GITHUB_TOKEN }}
