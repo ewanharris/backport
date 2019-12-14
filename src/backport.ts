@@ -107,7 +107,7 @@ const backportOnce = async ({
         console.warn(error3); // continue but warn
       }
       await git("add", ".");
-      await git("git commit", "-m", originalTitle);
+      await git("commit", "-m", originalTitle);
     } catch (error2) {
       await git("cherry-pick", "--abort");
       throw error2;
