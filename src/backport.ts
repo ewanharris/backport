@@ -72,6 +72,7 @@ const warnIfSquashIsNotTheOnlyAllowedMergeMethod = async ({
 const backportOnce = async ({
   base,
   body,
+  botUsername,
   commitToBackport,
   github,
   head,
@@ -83,6 +84,7 @@ const backportOnce = async ({
 }: {
   base: string;
   body: string;
+  botUsername: string;
   commitToBackport: string;
   github: GitHub;
   head: string;
@@ -113,11 +115,11 @@ const backportOnce = async ({
       throw error2;
     }
 
-    await git("push", "origin", head);
+    await git("push", "botrepo", head);
     await github.pulls.create({
       base: `${owner}:${base}`,
       body,
-      head: `${user}:${head}`,
+      head: `${botUsername}:${head}`,
       maintainer_can_modify: true,
       owner,
       repo,
@@ -169,6 +171,7 @@ const getFailedBackportCommentBody = ({
 };
 
 const backport = async ({
+  botUsername,
   payload: {
     action,
     // The payload has a label property when the action is "labeled".
@@ -189,6 +192,7 @@ const backport = async ({
   },
   token,
 }: {
+  botUsername: string;
   payload: WebhookPayloadPullRequest;
   token: string;
 }) => {
@@ -231,6 +235,13 @@ const backport = async ({
     `https://x-access-token:${token}@github.com/${owner}/${repo}.git`,
   );
 
+  await git(
+    "remote",
+    "add",
+    "botrepo",
+    `https://x-access-token:${token}@github.com/${botUsername}/${repo}.git`,
+  );
+
   await exec("git", [
     "config",
     "--global",
@@ -247,6 +258,7 @@ const backport = async ({
         await backportOnce({
           base,
           body,
+          botUsername,
           commitToBackport,
           github,
           head,

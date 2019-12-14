@@ -13,4 +13,5 @@ jobs:
       - name: Backport Bot
         uses: Gaurav0/backport@v1.0.15
         with:
-          github_token: ${{ secrets.GITHUB_TOKEN }}
+          bot_username: backport_bot
+          github_token: ${{ secrets.BACKPORT_BOT_TOKEN }}
