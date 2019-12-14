@@ -3,7 +3,10 @@ author: Thibault Derousseaux <tibdex@gmail.com>
 description: Automatically backport PRs to other branches by simply labeling them.
 inputs:
   bot_username:
-    description: Username associated with access token
+    description: Username associated with bot token
+    required: true
+  bot_token:
+    description: Personal access token of your bot account (should have public_repo access only)
     required: true
   github_token:
     description: Token for the GitHub API.

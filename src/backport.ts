@@ -171,6 +171,7 @@ const getFailedBackportCommentBody = ({
 };
 
 const backport = async ({
+  botToken,
   botUsername,
   payload: {
     action,
@@ -192,6 +193,7 @@ const backport = async ({
   },
   token,
 }: {
+  botToken: string;
   botUsername: string;
   payload: WebhookPayloadPullRequest;
   token: string;
@@ -239,7 +241,7 @@ const backport = async ({
     "remote",
     "add",
     "botrepo",
-    `https://x-access-token:${token}@github.com/${botUsername}/${repo}.git`,
+    `https://x-access-token:${botToken}@github.com/${botUsername}/${repo}.git`,
   );
 
   await exec("git", [
