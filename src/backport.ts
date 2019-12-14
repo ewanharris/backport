@@ -121,7 +121,7 @@ const backportOnce = async ({
       body,
       head: `${botUsername}:${head}`,
       maintainer_can_modify: true,
-      owner,
+      owner: botUsername,
       repo,
       title,
     });
