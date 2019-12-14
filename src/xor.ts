@@ -1,4 +1,4 @@
-export function xorHextrings(str1: string, str2: string): string {
+export function xorHexStrings(str1: string, str2: string): string {
   let a = hexToArray(str1);
   let b = hexToArray(str2);
   let res: Array<number> = [];
