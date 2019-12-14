@@ -98,7 +98,7 @@ const backportOnce = async ({
 
   try {
     await git("fetch", "upstream");
-    await git("checkout", "upstream", base);
+    await git("checkout", `upstream/${base}`);
     await git("checkout", "-b", head);
     try {
       await git("cherry-pick", "-n", commitToBackport);
