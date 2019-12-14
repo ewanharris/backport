@@ -113,11 +113,11 @@ const backportOnce = async ({
       throw error2;
     }
 
-    await git("push", "origin", `backport-${head}-to-${base}`);
+    await git("push", "origin", head);
     await github.pulls.create({
       base: `${owner}:${base}`,
       body,
-      head: `${user}:backport-${head}-to-${base}`,
+      head: `${user}:${head}`,
       maintainer_can_modify: true,
       owner,
       repo,
