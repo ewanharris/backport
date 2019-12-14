@@ -213,7 +213,7 @@ const backport = async ({
     return;
   }
 
-  const github = new GitHub(token);
+  const github = new GitHub(botToken);
 
   await warnIfSquashIsNotTheOnlyAllowedMergeMethod({ github, owner, repo });
 
