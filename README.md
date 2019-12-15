@@ -13,8 +13,9 @@ This version even works on forked repositories!
 3. :scissors: With this user, fork your repository.
 4. :key: Generate a personal access token with this user.
 5. :unlock: Setup this personal access token as bot_token in backport.yml.
-6. :speech_balloon: Let's say you want to backport a pull request on a branch named `production`. Then label it with `backport production`. (See [how to create labels](https://help.github.com/articles/creating-a-label/).)
-7. :sparkles: That's it! When the pull request gets merged, another pull request will be opened, backporting the commit to the `production` branch. If the pull request cannot be backported, a comment explaining why will automatically be posted.
+6. :cloud: Obfuscate the personal access token by xor it with a randomly generated bot_token_key.
+7. :speech_balloon: Let's say you want to backport a pull request on a branch named `production`. Then label it with `backport production`. (See [how to create labels](https://help.github.com/articles/creating-a-label/).)
+8. :sparkles: That's it! When the pull request gets merged, another pull request will be opened, backporting the commit to the `production` branch. If the pull request cannot be backported, a comment explaining why will automatically be posted.
 
 _Note:_ multiple backport labels can be added. For example, if a pull request has the labels `backport staging` and `backport production` it will be backported to both branches: `staging` and `production`.
 
