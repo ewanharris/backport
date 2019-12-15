@@ -213,7 +213,8 @@ const backport = async ({
     return;
   }
 
-  const github = new GitHub(botToken);
+  const githubUsingBotToken = new GitHub(botToken);
+  const github = new GitHub(token);
 
   await warnIfSquashIsNotTheOnlyAllowedMergeMethod({ github, owner, repo });
 
@@ -262,7 +263,7 @@ const backport = async ({
           body,
           botUsername,
           commitToBackport,
-          github,
+          github: githubUsingBotToken,
           head,
           originalTitle,
           owner,
@@ -273,7 +274,7 @@ const backport = async ({
       } catch (error) {
         const errorMessage = error.message;
         logError(`Backport failed: ${errorMessage}`);
-        await github.issues.createComment({
+        await githubUsingBotToken.issues.createComment({
           body: getFailedBackportCommentBody({
             base,
             commitToBackport,
@@ -281,7 +282,7 @@ const backport = async ({
             head,
           }),
           issue_number: pullRequestNumber,
-          owner,
+          owner: botUsername,
           repo,
         });
       }
