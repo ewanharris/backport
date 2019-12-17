@@ -11,9 +11,9 @@ This version even works on forked repositories!
 1. :electric_plug: Add this [.github/workflows/backport.yml](.github/workflows/backport.yml) to your repository.
 2. :guardsman: Create a user for the bot. Set this username in backport.yml
 3. :scissors: With this user, fork your repository.
-4. :key: Generate a personal access token with this user.
+4. :key: Generate a personal access token with this user. Give it only the "public_repo" permission.
 5. :unlock: Setup this personal access token as bot_token in backport.yml.
-6. :cloud: Obfuscate the personal access token by xor it with a randomly generated bot_token_key.
+6. :cloud: Obfuscate the personal access token by xor it with a randomly generated bot_token_key. This step is only to prevent Github from automatically revoking your token by placing it in a public repository.
 7. :speech_balloon: Let's say you want to backport a pull request on a branch named `production`. Then label it with `backport production`. (See [how to create labels](https://help.github.com/articles/creating-a-label/).)
 8. :sparkles: That's it! When the pull request gets merged, another pull request will be opened, backporting the commit to the `production` branch. If the pull request cannot be backported, a comment explaining why will automatically be posted.
 
