@@ -2,6 +2,8 @@ import { error as logError, group, warning, info } from "@actions/core";
 import { exec } from "@actions/exec";
 import { GitHub } from "@actions/github";
 import { WebhookPayloadPullRequest } from "@octokit/webhooks";
+import pMap from 'p-map';
+import { promises as fs } from 'fs';
 
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
 
@@ -78,6 +80,7 @@ const backportOnce = async ({
   head,
   originalTitle,
   owner,
+  pullRequestNumber,
   repo,
   title,
   user,
@@ -90,6 +93,7 @@ const backportOnce = async ({
   head: string;
   originalTitle: string;
   owner: string;
+  pullRequestNumber: number
   repo: string;
   title: string;
   user: string;
@@ -98,21 +102,34 @@ const backportOnce = async ({
     await exec("git", args, { cwd: repo });
   };
 
+  const commits = (await github.pulls.listCommits({
+    mediaType: {
+      format: 'patch'
+    },
+    owner,
+    pull_number: pullRequestNumber,
+    repo,
+  })).data.map((commit) => commit.url);
+
+  const mapCommits = async (commitUrl: string) => {
+    const { data } = await github.request(commitUrl, {
+      mediaType: 'patch'
+    });
+    return data;
+  };
+
+  const patches = await pMap(commits, mapCommits);
+
   try {
     await git("fetch", "upstream");
     await git("checkout", `upstream/${base}`);
     await git("checkout", "-b", head);
-    try {
-      try {
-        await git("cherry-pick", "-m1", "-n", commitToBackport);
-      } catch (error3) {
-        warning(error3); // continue but warn
-      }
-      await git("add", ".");
-      await git("commit", "-m", originalTitle);
-    } catch (error2) {
-      await git("cherry-pick", "--abort");
-      throw error2;
+
+    const patchFile = `${repo}.patch`;
+    for (const patch of patches) {
+      await fs.writeFile(patchFile, patch, 'utf8');
+      await git("am", "-3", patchFile);
+      await fs.unlink(patchFile);
     }
 
     await git("push", "botrepo", head);
@@ -268,6 +285,7 @@ const backport = async ({
           head,
           originalTitle,
           owner,
+          pullRequestNumber,
           repo,
           title,
           user,
