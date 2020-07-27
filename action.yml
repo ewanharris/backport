@@ -1,4 +1,4 @@
-name: Backport Bot
+name: Backporting Bot
 author: Thibault Derousseaux <tibdex@gmail.com>
 description: Automatically backport PRs to other branches by simply labeling them.
 inputs:
