@@ -110,7 +110,7 @@ const backportOnce = async ({
     pull_number: pullRequestNumber,
     repo,
   })).data.map((commit) => commit.url);
-
+  console.log(commits);
   const mapCommits = async (commitUrl: string) => {
     const { data } = await github.request(commitUrl, {
       mediaType: 'patch'
@@ -119,7 +119,7 @@ const backportOnce = async ({
   };
 
   const patches = await pMap(commits, mapCommits);
-
+  console.log(patches);
   try {
     await git("fetch", "upstream");
     await git("checkout", `upstream/${base}`);
