@@ -110,8 +110,10 @@ const backportOnce = async ({
     owner,
     pull_number: pullRequestNumber,
     repo,
-  })).data.map((commit) => commit.url);
-
+  })).data
+    .filter((commit) => /^Merge branch '\S+' into \S+/.test(commit.commit.message))
+    .map((commit) => commit.url);
+  console.log(commits);
   const mapCommits = async (commitUrl: string) => {
     const { data } = await github.request(commitUrl, {
       mediaType: {
