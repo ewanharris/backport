@@ -101,7 +101,7 @@ const backportOnce = async ({
   const git = async (...args: string[]) => {
     await exec("git", args, { cwd: repo });
   };
-
+  console.log(owner, pullRequestNumber, repo);
   const commits = (await github.pulls.listCommits({
     mediaType: {
       format: 'patch'
