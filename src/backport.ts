@@ -111,7 +111,7 @@ const backportOnce = async ({
     pull_number: pullRequestNumber,
     repo,
   })).data.map((commit) => commit.url);
-  console.log(commits);
+
   const mapCommits = async (commitUrl: string) => {
     const { data } = await github.request(commitUrl, {
       mediaType: {
@@ -122,7 +122,7 @@ const backportOnce = async ({
   };
 
   const patches = await pMap(commits, mapCommits);
-  console.log(patches);
+
   try {
     await git("fetch", "upstream");
     await git("checkout", `upstream/${base}`);
@@ -247,24 +247,6 @@ const backport = async ({
     "clone",
     `https://x-access-token:${token}@github.com/${user}/${repo}.git`,
   ]);
-
-  const git = async (...args: string[]) => {
-    await exec("git", args, { cwd: repo });
-  };
-
-  await git(
-    "remote",
-    "add",
-    "upstream",
-    `https://x-access-token:${token}@github.com/${owner}/${repo}.git`,
-  );
-
-  await git(
-    "remote",
-    "add",
-    "botrepo",
-    `https://x-access-token:${botToken}@github.com/${botUsername}/${repo}.git`,
-  );
 
   await exec("git", [
     "config",
