@@ -135,7 +135,7 @@ const backportOnce = async ({
       await fs.unlink(patchFile);
     }
 
-    await git("push", "origin", head);
+    await git("push", "botrepo", head);
     await github.pulls.create({
       base,
       body,
@@ -243,10 +243,21 @@ const backport = async ({
   const commitToBackport = String(mergeCommitSha);
   info(`Backporting ${commitToBackport} from #${pullRequestNumber}`);
 
+  const git = async (...args: string[]) => {
+    await exec("git", args, { cwd: repo });
+  };
+
   await exec("git", [
     "clone",
     `https://x-access-token:${botToken}@github.com/${owner}/${repo}.git`,
   ]);
+
+  await git(
+    "remote",
+    "add",
+    "botrepo",
+    `https://x-access-token:${botToken}@github.com/${botUsername}/${repo}.git`,
+  );
 
   await exec("git", [
     "config",
