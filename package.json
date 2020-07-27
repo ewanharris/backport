@@ -1,6 +1,6 @@
 {
   "name": "backport",
-  "version": "1.0.28-6",
+  "version": "1.0.28-7",
   "license": "MIT",
   "files": [
     "action.yml",

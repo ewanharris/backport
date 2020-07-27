@@ -124,8 +124,8 @@ const backportOnce = async ({
   const patches = await pMap(commits, mapCommits);
 
   try {
-    await git("fetch", "upstream");
-    await git("checkout", `upstream/${base}`);
+    await git("fetch", "origin");
+    await git("checkout", `origin/${base}`);
     await git("checkout", "-b", head);
 
     const patchFile = path.join(__dirname, `${repo}.patch`);
