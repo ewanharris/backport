@@ -113,7 +113,9 @@ const backportOnce = async ({
   console.log(commits);
   const mapCommits = async (commitUrl: string) => {
     const { data } = await github.request(commitUrl, {
-      mediaType: 'patch'
+      mediaType: {
+        format: 'patch'
+      }
     });
     return data;
   };
@@ -291,6 +293,7 @@ const backport = async ({
           user,
         });
       } catch (error) {
+        console.log(error);
         const errorMessage = error.message;
         logError(`Backport failed: ${errorMessage}`);
         await githubUsingBotToken.issues.createComment({
