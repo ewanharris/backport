@@ -4,6 +4,7 @@ import { GitHub } from "@actions/github";
 import { WebhookPayloadPullRequest } from "@octokit/webhooks";
 import pMap from 'p-map';
 import { promises as fs } from 'fs';
+import * as path from 'path';
 
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
 
@@ -127,7 +128,7 @@ const backportOnce = async ({
     await git("checkout", `upstream/${base}`);
     await git("checkout", "-b", head);
 
-    const patchFile = `${repo}.patch`;
+    const patchFile = path.join(__dirname, `${repo}.patch`);
     for (const patch of patches) {
       await fs.writeFile(patchFile, patch, 'utf8');
       await git("am", "-3", patchFile);
