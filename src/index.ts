@@ -10,8 +10,16 @@ const run = async () => {
     const token = getInput("github_token", { required: true });
     const botUsername = getInput("bot_username", { required: true });
     const encryptedBotToken = getInput("bot_token", { required: true });
-    const botTokenKey = getInput("bot_token_key", { required: true });
-    const botToken = xorHexStrings(encryptedBotToken, botTokenKey);
+    const botTokenKey = getInput("bot_token_key", { required: false });
+
+    let botToken;
+    // If no botTokenKey was provided then the provided bot_token value does not need "decrypting"
+    if (botTokenKey === '') {
+      botToken = encryptedBotToken;
+    } else {
+      botToken = xorHexStrings(encryptedBotToken, botTokenKey);
+    }
+
     debug(JSON.stringify(context, null, 2));
     await backport({
       botToken,

@@ -6,8 +6,11 @@ inputs:
     description: Username associated with bot token
     required: true
   bot_token:
-    description: Personal access token of your bot account (should have public_repo access only)
+    description: Personal access token of your bot account (should have public_repo access only). If not using GitHub secrets then XOR this value with a 40 character hex string and provide that value as bot_token_key
     required: true
+  bot_token_key:
+    description: Key that was used to XOR the bot_token value, optional if value is secured using GitHub secrets
+    required: false
   github_token:
     description: Token for the GitHub API.
     required: true
