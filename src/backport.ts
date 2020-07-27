@@ -135,7 +135,7 @@ const backportOnce = async ({
       await fs.unlink(patchFile);
     }
 
-    await git("push", "botrepo", head);
+    await git("push", "origin", head);
     await github.pulls.create({
       base,
       body,
