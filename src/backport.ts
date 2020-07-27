@@ -245,7 +245,7 @@ const backport = async ({
 
   await exec("git", [
     "clone",
-    `https://x-access-token:${token}@github.com/${user}/${repo}.git`,
+    `https://x-access-token:${token}@github.com/${owner}/${repo}.git`,
   ]);
 
   await exec("git", [
