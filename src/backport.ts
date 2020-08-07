@@ -133,7 +133,7 @@ const backportOnce = async ({
     const patchFile = path.join(__dirname, `${repo}.patch`);
     for (const patch of patches) {
       await fs.writeFile(patchFile, patch, 'utf8');
-      await git("am", "-3", patchFile);
+      await git("am", "-3", "--ignore-whitespace", patchFile);
       await fs.unlink(patchFile);
     }
 
