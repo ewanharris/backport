@@ -122,6 +122,7 @@ const backportOnce = async ({
     });
   } catch (error) {
     warning(error);
+    await git("am", "--abort");
     throw error;
   }
 };
@@ -184,15 +185,13 @@ const backport = async ({
       merge_commit_sha: mergeCommitSha,
       merged,
       number: pullRequestNumber,
-      title: originalTitle,
-      user: { login: user },
+      title: originalTitle
     },
     repository: {
       name: repo,
       owner: { login: owner },
     },
-  },
-  token,
+  }
 }: {
   botToken: string;
   botUsername: string;
