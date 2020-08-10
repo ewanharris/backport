@@ -48,72 +48,45 @@ const getBackportBaseToHead = ({
     return { ...baseToHead, [base]: head };
   }, {});
 
-const warnIfSquashIsNotTheOnlyAllowedMergeMethod = async ({
-  github,
-  owner,
-  repo,
-}: {
-  github: GitHub;
-  owner: string;
-  repo: string;
-}) => {
-  const {
-    data: { allow_merge_commit, allow_rebase_merge },
-  } = await github.repos.get({ owner, repo });
-  if (allow_merge_commit || allow_rebase_merge) {
-    warning(
-      [
-        "Your repository allows merge commits and rebase merging.",
-        " However, Backport only supports rebased and merged pull requests with a single commit and squashed and merged pull requests.",
-        " Consider only allowing squash merging.",
-        " See https://help.github.com/en/github/administering-a-repository/about-merge-methods-on-github for more information.",
-      ].join("\n"),
-    );
-  }
-};
-
-const backportOnce = async ({
-  base,
-  body,
-  botUsername,
-  commitToBackport,
-  github,
-  head,
-  originalTitle,
-  owner,
-  pullRequestNumber,
-  repo,
-  title,
-  user,
-}: {
-  base: string;
-  body: string;
-  botUsername: string;
-  commitToBackport: string;
-  github: GitHub;
-  head: string;
-  originalTitle: string;
-  owner: string;
-  pullRequestNumber: number
-  repo: string;
-  title: string;
-  user: string;
-}) => {
-  const git = async (...args: string[]) => {
-    await exec("git", args, { cwd: repo });
-  };
-  console.log(owner, pullRequestNumber, repo);
-  const commits = (await github.pulls.listCommits({
+const getCommits = async (github: GitHub, owner: string, repo: string, pullRequestNumber: number) => {
+  const commits = await github.pulls.listCommits({
     mediaType: {
       format: 'patch'
     },
     owner,
     pull_number: pullRequestNumber,
     repo,
-  })).data
+  })
+  return commits.data
     .filter((commit) => !/^Merge branch '\S+' into \S+/.test(commit.commit.message))
     .map((commit) => commit.url);
-  console.log(commits);
+}
+
+const backportOnce = async ({
+  base,
+  body,
+  botUsername,
+  commits,
+  github,
+  head,
+  owner,
+  repo,
+  title,
+}: {
+  base: string;
+  body: string;
+  botUsername: string;
+  commits: string[]
+  github: GitHub;
+  head: string;
+  owner: string;
+  repo: string;
+  title: string;
+}) => {
+  const git = async (...args: string[]) => {
+    await exec("git", args, { cwd: repo });
+  };
+
   const mapCommits = async (commitUrl: string) => {
     const { data } = await github.request(commitUrl, {
       mediaType: {
@@ -153,18 +126,29 @@ const backportOnce = async ({
   }
 };
 
-const getFailedBackportCommentBody = ({
+const getFailedBackportCommentBody = async ({
   base,
-  commitToBackport,
+  commits,
   errorMessage,
-  head,
+  github,
+  head
 }: {
   base: string;
   commitToBackport: string;
+  commits: string[];
   errorMessage: string;
+  github: GitHub;
   head: string;
 }) => {
-  const worktreePath = `.worktrees/backport-${base}`;
+
+  const apiToPatchUrl = async (commitUrl: string) => {
+    const { data } = await github.request(commitUrl);
+
+    return `curl -s ${data.html_url}.patch | git am -3 --ignore-whitespace`;
+  }
+
+  const commitCommands = await pMap(commits, apiToPatchUrl);
+
   return [
     `The backport to \`${base}\` failed:`,
     "```",
@@ -174,20 +158,14 @@ const getFailedBackportCommentBody = ({
     "```bash",
     "# Fetch latest updates from GitHub",
     "git fetch",
-    "# Create a new working tree",
-    `git worktree add ${worktreePath} ${base}`,
-    "# Navigate to the new working tree",
-    `cd ${worktreePath}`,
-    "# Create a new branch",
-    `git switch --create ${head}`,
-    "# Cherry-pick the merged commit of this pull request and resolve the conflicts",
-    `git cherry-pick ${commitToBackport}`,
+    "# Check out the target branch",
+    `git checkout ${base}`,
+    "# Check out your branch",
+    `git checkout -b ${head}`,
+    "# Apply the commits from the PR",
+    ...commitCommands,
     "# Push it to GitHub",
     `git push --set-upstream origin ${head}`,
-    "# Go back to the original working tree",
-    "cd ../..",
-    "# Delete the working tree",
-    `git worktree remove ${worktreePath}`,
     "```",
     `Then, create a pull request where the \`base\` branch is \`${base}\` and the \`compare\`/\`head\` branch is \`${head}\`.`,
   ].join("\n");
@@ -237,9 +215,6 @@ const backport = async ({
   }
 
   const githubUsingBotToken = new GitHub(botToken);
-  const github = new GitHub(token);
-
-  await warnIfSquashIsNotTheOnlyAllowedMergeMethod({ github, owner, repo });
 
   // The merge commit SHA is actually not null.
   const commitToBackport = String(mergeCommitSha);
@@ -269,6 +244,8 @@ const backport = async ({
   ]);
   await exec("git", ["config", "--global", "user.name", "github-actions[bot]"]);
 
+  const commits = await getCommits(githubUsingBotToken, owner, repo, pullRequestNumber);
+
   for (const [base, head] of Object.entries(backportBaseToHead)) {
     const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
     const title = `[Backport ${base}] ${originalTitle}`;
@@ -278,25 +255,24 @@ const backport = async ({
           base,
           body,
           botUsername,
-          commitToBackport,
+          commits,
           github: githubUsingBotToken,
           head,
-          originalTitle,
           owner,
-          pullRequestNumber,
           repo,
-          title,
-          user,
+          title
         });
       } catch (error) {
         console.log(error);
         const errorMessage = error.message;
         logError(`Backport failed: ${errorMessage}`);
         await githubUsingBotToken.issues.createComment({
-          body: getFailedBackportCommentBody({
+          body: await getFailedBackportCommentBody({
             base,
+            commits,
             commitToBackport,
             errorMessage,
+            github: githubUsingBotToken,
             head,
           }),
           issue_number: pullRequestNumber,
