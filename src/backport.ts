@@ -287,6 +287,12 @@ const backport = async ({
           repo,
         });
         setFailed(`backport to branch ${base} failed with ${errorMessage}`);
+        await githubUsingBotToken.issues.addLabels({
+          owner,
+          repo,
+          issue_number: pullRequestNumber,
+          labels: [ `backport-failed/${base}` ]
+        });
       }
     });
   }
