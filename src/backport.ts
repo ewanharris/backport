@@ -1,6 +1,8 @@
 import { error as logError, group, warning, info } from "@actions/core";
 import { exec } from "@actions/exec";
-import { GitHub } from "@actions/github";
+import { context, getOctokit } from "@actions/github";
+import { GitHub } from "@actions/github/lib/utils";
+
 import { WebhookPayloadPullRequest } from "@octokit/webhooks";
 import pMap from 'p-map';
 import { promises as fs } from 'fs';
@@ -48,7 +50,7 @@ const getBackportBaseToHead = ({
     return { ...baseToHead, [base]: head };
   }, {});
 
-const getCommits = async (github: GitHub, owner: string, repo: string, pullRequestNumber: number) => {
+const getCommits = async (github: InstanceType<typeof GitHub>, owner: string, repo: string, pullRequestNumber: number) => {
   const commits = await github.pulls.listCommits({
     mediaType: {
       format: 'patch'
@@ -77,7 +79,7 @@ const backportOnce = async ({
   body: string;
   botUsername: string;
   commits: string[]
-  github: GitHub;
+  github: InstanceType<typeof GitHub>;
   head: string;
   owner: string;
   repo: string;
@@ -138,7 +140,7 @@ const getFailedBackportCommentBody = async ({
   commitToBackport: string;
   commits: string[];
   errorMessage: string;
-  github: GitHub;
+  github: InstanceType<typeof GitHub>;
   head: string;
 }) => {
 
@@ -150,11 +152,14 @@ const getFailedBackportCommentBody = async ({
 
   const commitCommands = await pMap(commits, apiToPatchUrl);
 
+  const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runNumber}`
+
   return [
     `The backport to \`${base}\` failed:`,
     "```",
     errorMessage,
     "```",
+    `Check [the run](${runUrl}) for full details`,
     "To backport manually, run these commands in your terminal:",
     "```bash",
     "# Fetch latest updates from GitHub",
@@ -200,6 +205,9 @@ const backport = async ({
   payload: WebhookPayloadPullRequest;
   token: string;
 }) => {
+
+  console.log(`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runNumber}`)
+
   if (!merged) {
     return;
   }
@@ -215,7 +223,7 @@ const backport = async ({
     return;
   }
 
-  const githubUsingBotToken = new GitHub(botToken);
+  const githubUsingBotToken = getOctokit(botToken);
 
   // The merge commit SHA is actually not null.
   const commitToBackport = String(mergeCommitSha);
