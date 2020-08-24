@@ -14,7 +14,7 @@ const getLabelsToCopy = (
   action: WebhookPayloadPullRequest["action"],
   label: { name: string },
   labels: WebhookPayloadPullRequest["pull_request"]["labels"]
-  ): string[] =>  getLabelNames({ action, label, labels }).filter(label => label.includes('backport'));
+  ): string[] =>  getLabelNames({ action, label, labels }).filter(label => !label.includes('backport'));
 
 const getLabelNames = ({
   action,
