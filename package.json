@@ -1,6 +1,6 @@
 {
   "name": "backport",
-  "version": "1.0.28-15",
+  "version": "1.0.28-16",
   "license": "MIT",
   "files": [
     "action.yml",
@@ -15,7 +15,7 @@
     "prettier": "prettier --ignore-path .gitignore \"./**/*.{js,json,md,ts,yml}\""
   },
   "devDependencies": {
-    "@actions/core": "^1.1.1",
+    "@actions/core": "^1.2.4",
     "@actions/exec": "^1.0.1",
     "@actions/github": "^4.0.0",
     "@octokit/webhooks": "^6.3.0",

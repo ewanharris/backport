@@ -1,4 +1,4 @@
-import { error as logError, group, warning, info } from "@actions/core";
+import { error as logError, group, warning, info, debug, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { context, getOctokit } from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
@@ -58,7 +58,8 @@ const getCommits = async (github: InstanceType<typeof GitHub>, owner: string, re
     owner,
     pull_number: pullRequestNumber,
     repo,
-  })
+  });
+
   return commits.data
     .filter((commit) => !/^Merge branch '\S+' into \S+/.test(commit.commit.message))
     .map((commit) => commit.url);
@@ -206,8 +207,6 @@ const backport = async ({
   token: string;
 }) => {
 
-  console.log(`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`)
-
   if (!merged) {
     return;
   }
@@ -272,9 +271,9 @@ const backport = async ({
           title
         });
       } catch (error) {
-        console.log(error);
         const errorMessage = error.message;
         logError(`Backport failed: ${errorMessage}`);
+        debug(error);
         await githubUsingBotToken.issues.createComment({
           body: await getFailedBackportCommentBody({
             base,
@@ -288,6 +287,7 @@ const backport = async ({
           owner,
           repo,
         });
+        setFailed(`1 or more backports failed with ${errorMessage}`);
       }
     });
   }
