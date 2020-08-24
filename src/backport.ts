@@ -161,6 +161,8 @@ const getFailedBackportCommentBody = async ({
     "git fetch",
     "# Check out the target branch",
     `git checkout ${base}`,
+    "# Make sure it's up to date",
+    "git pull",
     "# Check out your branch",
     `git checkout -b ${head}`,
     "# Apply the commits from the PR",
