@@ -272,7 +272,6 @@ const backport = async ({
         });
       } catch (error) {
         const errorMessage = error.message;
-        logError(`Backport failed: ${errorMessage}`);
         debug(error);
         await githubUsingBotToken.issues.createComment({
           body: await getFailedBackportCommentBody({
@@ -287,7 +286,7 @@ const backport = async ({
           owner,
           repo,
         });
-        setFailed(`1 or more backports failed with ${errorMessage}`);
+        setFailed(`backport to branch ${base} failed with ${errorMessage}`);
       }
     });
   }
