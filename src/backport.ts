@@ -10,6 +10,12 @@ import * as path from 'path';
 
 const labelRegExp = /^backport ([^ ]+)(?: ([^ ]+))?$/;
 
+const getLabelsToCopy = (
+  action: WebhookPayloadPullRequest["action"],
+  label: { name: string },
+  labels: WebhookPayloadPullRequest["pull_request"]["labels"]
+  ): string[] =>  getLabelNames({ action, label, labels }).filter(label => label.includes('backport'));
+
 const getLabelNames = ({
   action,
   label,
@@ -72,6 +78,7 @@ const backportOnce = async ({
   commits,
   github,
   head,
+  labels,
   owner,
   repo,
   title,
@@ -82,6 +89,7 @@ const backportOnce = async ({
   commits: string[]
   github: InstanceType<typeof GitHub>;
   head: string;
+  labels: string[],
   owner: string;
   repo: string;
   title: string;
@@ -114,7 +122,7 @@ const backportOnce = async ({
     }
 
     await git("push", "botrepo", head);
-    await github.pulls.create({
+    const { data: createdPr } = await github.pulls.create({
       base,
       body,
       head: `${botUsername}:${head}`,
@@ -123,6 +131,14 @@ const backportOnce = async ({
       repo,
       title,
     });
+
+    await github.issues.addLabels({
+      owner,
+      repo,
+      issue_number: createdPr.number,
+      labels
+    })
+
   } catch (error) {
     warning(error);
     await git("am", "--abort");
@@ -253,6 +269,7 @@ const backport = async ({
   await exec("git", ["config", "--global", "user.name", "github-actions[bot]"]);
 
   const commits = await getCommits(githubUsingBotToken, owner, repo, pullRequestNumber);
+  const labelsToCopy = await getLabelsToCopy(action, label, labels);
 
   for (const [base, head] of Object.entries(backportBaseToHead)) {
     const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
@@ -266,10 +283,12 @@ const backport = async ({
           commits,
           github: githubUsingBotToken,
           head,
+          labels: labelsToCopy,
           owner,
           repo,
           title
         });
+
       } catch (error) {
         const errorMessage = error.message;
         debug(error);
@@ -291,7 +310,7 @@ const backport = async ({
           owner,
           repo,
           issue_number: pullRequestNumber,
-          labels: [ `backport-failed/${base}` ]
+          labels: [ `${base} backport failed` ]
         });
       }
     });
