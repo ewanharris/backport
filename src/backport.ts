@@ -152,7 +152,7 @@ const getFailedBackportCommentBody = async ({
 
   const commitCommands = await pMap(commits, apiToPatchUrl);
 
-  const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runNumber}`
+  const runUrl = `https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`
 
   return [
     `The backport to \`${base}\` failed:`,
@@ -206,7 +206,7 @@ const backport = async ({
   token: string;
 }) => {
 
-  console.log(`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runNumber}`)
+  console.log(`https://github.com/${context.repo.owner}/${context.repo.repo}/actions/runs/${context.runId}`)
 
   if (!merged) {
     return;
