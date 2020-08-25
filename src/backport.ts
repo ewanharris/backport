@@ -1,4 +1,4 @@
-import { error as logError, group, warning, info, debug, setFailed } from "@actions/core";
+import { group, warning, info, debug, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { context, getOctokit } from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
@@ -80,6 +80,7 @@ const backportOnce = async ({
   head,
   labels,
   owner,
+  pullRequestNumber,
   repo,
   title,
 }: {
@@ -91,6 +92,7 @@ const backportOnce = async ({
   head: string;
   labels: string[],
   owner: string;
+  pullRequestNumber: number;
   repo: string;
   title: string;
 }) => {
@@ -133,12 +135,18 @@ const backportOnce = async ({
     });
 
     await github.issues.addLabels({
-      owner,
-      repo,
       issue_number: createdPr.number,
-      labels
-    })
+      labels,
+      owner,
+      repo
+    });
 
+    await github.issues.removeLabel({
+      issue_number: pullRequestNumber,
+      name: `backport ${base}`,
+      owner,
+      repo
+    })
   } catch (error) {
     warning(error);
     await git("am", "--abort");
@@ -269,7 +277,7 @@ const backport = async ({
   await exec("git", ["config", "--global", "user.name", "github-actions[bot]"]);
 
   const commits = await getCommits(githubUsingBotToken, owner, repo, pullRequestNumber);
-  const labelsToCopy = await getLabelsToCopy(action, label, labels);
+  const labelsToCopy = getLabelsToCopy(action, label, labels);
 
   for (const [base, head] of Object.entries(backportBaseToHead)) {
     const body = `Backport of #${pullRequestNumber}.\nSee that PR for full details.`;
@@ -285,6 +293,7 @@ const backport = async ({
           head,
           labels: labelsToCopy,
           owner,
+          pullRequestNumber,
           repo,
           title
         });
@@ -307,10 +316,10 @@ const backport = async ({
         });
         setFailed(`backport to branch ${base} failed with ${errorMessage}`);
         await githubUsingBotToken.issues.addLabels({
+          issue_number: pullRequestNumber,
+          labels: [ `${base} backport failed` ],
           owner,
           repo,
-          issue_number: pullRequestNumber,
-          labels: [ `${base} backport failed` ]
         });
       }
     });
