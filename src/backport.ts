@@ -272,7 +272,7 @@ const backport = async ({
   const labelsToCopy = await getLabelsToCopy(action, label, labels);
 
   for (const [base, head] of Object.entries(backportBaseToHead)) {
-    const body = `Backport ${commitToBackport} from #${pullRequestNumber}`;
+    const body = `Backport of #${pullRequestNumber}.\nSee that PR for full details.`;
     const title = `[Backport ${base}] ${originalTitle}`;
     await group(`Backporting to ${base} on ${head}`, async () => {
       try {
