@@ -134,12 +134,14 @@ const backportOnce = async ({
       title,
     });
 
-    await github.issues.addLabels({
-      issue_number: createdPr.number,
-      labels,
-      owner,
-      repo
-    });
+    if (labels.length) {
+      await github.issues.addLabels({
+        issue_number: createdPr.number,
+        labels,
+        owner,
+        repo
+      });
+    }
 
     await github.issues.removeLabel({
       issue_number: pullRequestNumber,
