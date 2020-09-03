@@ -231,8 +231,6 @@ const backport = async ({
   token: string;
 }) => {
 
-  await exec('npx --version');
-
   if (!merged) {
     return;
   }
@@ -280,6 +278,14 @@ const backport = async ({
 
   const commits = await getCommits(githubUsingBotToken, owner, repo, pullRequestNumber);
   const labelsToCopy = getLabelsToCopy(action, label, labels);
+
+  try {
+    // TODO: if this is proven to work make this optional
+    await exec('npx npm-merge-driver install --global');
+  } catch (error) {
+    info('Failed to install npm-merge-driver, merge conflicts in package-lock.json files will not be fixed');
+    debug(error);
+  }
 
   for (const [base, head] of Object.entries(backportBaseToHead)) {
     const body = `Backport of #${pullRequestNumber}.\nSee that PR for full details.`;
