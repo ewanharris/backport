@@ -231,6 +231,8 @@ const backport = async ({
   token: string;
 }) => {
 
+  await exec('npx --version');
+
   if (!merged) {
     return;
   }
