@@ -2,6 +2,7 @@ import { group, warning, info, debug, setFailed } from "@actions/core";
 import { exec } from "@actions/exec";
 import { context, getOctokit } from "@actions/github";
 import { GitHub } from "@actions/github/lib/utils";
+import { PullsListCommitsResponseData } from "@octokit/types/dist-types/generated/Endpoints";
 
 import { WebhookPayloadPullRequest } from "@octokit/webhooks";
 import pMap from 'p-map';
@@ -57,7 +58,8 @@ const getBackportBaseToHead = ({
   }, {});
 
 const getCommits = async (github: InstanceType<typeof GitHub>, owner: string, repo: string, pullRequestNumber: number) => {
-  const commits = await github.pulls.listCommits({
+
+  const paginateOptions = github.pulls.listCommits.endpoint.merge({
     mediaType: {
       format: 'patch'
     },
@@ -66,7 +68,10 @@ const getCommits = async (github: InstanceType<typeof GitHub>, owner: string, re
     repo,
   });
 
-  return commits.data
+  // The typing here seems wrong, but is correct...
+  const commits = await github.paginate<PullsListCommitsResponseData[0]>(paginateOptions);
+
+  return commits
     .filter((commit) => !/^Merge branch '\S+' into \S+/.test(commit.commit.message))
     .map((commit) => commit.url);
 }
